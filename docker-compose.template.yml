@@ -199,9 +199,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       LOG_DIR: "/tmp/mavis-kafka-logs"
-      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+      KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
     volumes:
-      - kafka_data:/var/lib/kafka/data
       - kafka_cfg:/opt/kafka/config
 
 volumes:
@@ -212,5 +211,4 @@ volumes:
   redis_data: {}
   rabbitmq_data: {}
   rabbitmq_log: {}
-  kafka_data: {}
   kafka_cfg: {}
