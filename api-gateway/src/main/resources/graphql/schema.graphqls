@@ -1,0 +1,34 @@
+type Query {
+    storefrontOverview: StorefrontOverview!
+    productById(id: ID!): ProductSummary
+    recentOrders: [OrderSummary!]!
+}
+
+type StorefrontOverview {
+    gatewayVersion: String!
+    productCount: Int!
+    orderCount: Int!
+    notificationCount: Int!
+    circuitBreakerEnabled: Boolean!
+    degraded: Boolean!
+}
+
+type ProductSummary {
+    id: ID!
+    sku: String!
+    name: String!
+    category: String!
+    price: Float!
+    stock: Int!
+    cacheHit: Boolean!
+}
+
+type OrderSummary {
+    id: ID!
+    customerId: String!
+    productId: ID!
+    quantity: Int!
+    totalAmount: Float!
+    status: String!
+    paymentProtocol: String
+}

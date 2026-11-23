@@ -1,0 +1,99 @@
+name: Publish OmniShop Studio Images
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docker-compose.yml"
+      - "studio-preset.json"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push all 5 services + payment v2-canary
+        run: |
+          set -euo pipefail
+          : > digests.env
+          for service in api-gateway catalog-service order-service payment-service notification-worker; do
+            image="ghcr.io/mavis-platform/mavis-omnishop-studio-${service}:${GITHUB_SHA}"
+            latest="ghcr.io/mavis-platform/mavis-omnishop-studio-${service}:latest"
+            docker buildx build --platform linux/amd64 --push \
+              --file "./${service}/Dockerfile" \
+              --tag "$image" --tag "$latest" .
+            digest="$(docker buildx imagetools inspect "$image" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+            echo "${service}=${digest}" >> digests.env
+          done
+
+          # Build v2-canary image for payment-service (for Studio Live SWAP_VERSION testing)
+          canary_image="ghcr.io/mavis-platform/mavis-omnishop-studio-payment-service:v2-canary"
+          docker buildx build --platform linux/amd64 --push \
+            --file "./payment-service/Dockerfile" \
+            --build-arg APP_VERSION=v2-canary \
+            --build-arg DEFAULT_LATENCY_MS=120 \
+            --build-arg DEFAULT_FRAUD_STRICT=true \
+            --tag "$canary_image" .
+          canary_digest="$(docker buildx imagetools inspect "$canary_image" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          echo "payment-service-v2=${canary_digest}" >> digests.env
+          cat digests.env
+
+      - name: Pin immutable digests in docker-compose.yml and studio-preset.json
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          digests = {}
+          for line in Path("digests.env").read_text().splitlines():
+              key, digest = line.split("=", 1)
+              digests[key] = digest
+
+          compose = Path("docker-compose.template.yml").read_text()
+          for svc, placeholder in {
+              "api-gateway": "__API_GATEWAY_IMAGE__",
+              "catalog-service": "__CATALOG_SERVICE_IMAGE__",
+              "order-service": "__ORDER_SERVICE_IMAGE__",
+              "payment-service": "__PAYMENT_SERVICE_IMAGE__",
+              "notification-worker": "__NOTIFICATION_WORKER_IMAGE__",
+          }.items():
+              compose = compose.replace(
+                  placeholder,
+                  f"ghcr.io/mavis-platform/mavis-omnishop-studio-{svc}@{digests[svc]}",
+              )
+          Path("docker-compose.yml").write_text(compose)
+
+          preset = Path("studio-preset.template.json").read_text().replace(
+              "__PAYMENT_SERVICE_V2_CANARY_IMAGE__",
+              f"ghcr.io/mavis-platform/mavis-omnishop-studio-payment-service@{digests['payment-service-v2']}",
+          )
+          Path("studio-preset.json").write_text(preset)
+          PY
+
+      - name: Commit digest-pinned manifests
+        run: |
+          git config user.name "mavis-bot"
+          git config user.email "mavis-bot@users.noreply.github.com"
+          git add docker-compose.yml studio-preset.json
+          if git diff --cached --quiet; then
+            echo "Manifests already up to date"
+          else
+            git commit -m "chore(images): pin OmniShop Studio digests for ${GITHUB_SHA} [skip ci]"
+            git push
+          fi

@@ -1,0 +1,53 @@
+{
+  "name": "OmniShop Studio Comprehensive E2E Suite",
+  "recommendedProbeRps": 2,
+  "recommendedMemoryMiB": 512,
+  "recommendedTimeoutSeconds": 150,
+  "workloadSteps": [
+    {
+      "id": "live-full-flow",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/storefront/live-flow",
+      "expectedStatus": 200
+    },
+    {
+      "id": "graphql-storefront",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/graphql/storefront",
+      "expectedStatus": 200
+    },
+    {
+      "id": "catalog-cache-read",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/products/1",
+      "expectedStatus": 200
+    },
+    {
+      "id": "order-payment-join",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/orders/ORD-1001",
+      "expectedStatus": 200
+    },
+    {
+      "id": "sse-stream-pulse",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/stream/events",
+      "expectedStatus": 200
+    }
+  ],
+  "allowedEnvKeys": {
+    "api-gateway": ["CIRCUIT_BREAKER_ENABLED", "RETRY_MAX_ATTEMPTS", "ARTIFICIAL_LATENCY_MS", "RATE_LIMIT_RPS"],
+    "catalog-service": ["CACHE_ENABLED", "CACHE_TTL_SECONDS", "ARTIFICIAL_LATENCY_MS", "FAULT_ERROR_RATE_PCT"],
+    "order-service": ["PAYMENT_PROTOCOL", "PUBLISH_ASYNC_EVENTS", "ARTIFICIAL_LATENCY_MS", "FAULT_ERROR_RATE_PCT"],
+    "payment-service": ["FRAUD_CHECK_STRICT", "ARTIFICIAL_LATENCY_MS", "FAULT_ERROR_RATE_PCT"],
+    "notification-worker": ["ARTIFICIAL_LATENCY_MS", "CONSUMER_SIMULATE_LAG_MS"]
+  },
+  "alternateImages": {
+    "payment-service": "__PAYMENT_SERVICE_V2_CANARY_IMAGE__"
+  }
+}

@@ -1,0 +1,35 @@
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    basedir: /tmp/tomcat
+    threads:
+      max: 64
+
+spring:
+  application:
+    name: api-gateway
+  graphql:
+    path: /graphql
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    diskspace:
+      enabled: false
+    mail:
+      enabled: false
+
+omnishop:
+  version: ${APP_VERSION:v1}
+  catalog-url: ${CATALOG_SERVICE_URL:http://catalog-service:8080}
+  order-url: ${ORDER_SERVICE_URL:http://order-service:8080}
+  payment-url: ${PAYMENT_SERVICE_URL:http://payment-service:8080}
+  notification-url: ${NOTIFICATION_WORKER_URL:http://notification-worker:8080}
+  resilience:
+    circuit-breaker-enabled: ${CIRCUIT_BREAKER_ENABLED:false}
+    retry-max-attempts: ${RETRY_MAX_ATTEMPTS:1}
+    artificial-latency-ms: ${ARTIFICIAL_LATENCY_MS:0}
+    rate-limit-rps: ${RATE_LIMIT_RPS:100}

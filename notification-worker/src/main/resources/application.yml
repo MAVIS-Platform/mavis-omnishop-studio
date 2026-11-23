@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    basedir: /tmp/tomcat
+    threads:
+      max: 32
+
+spring:
+  application:
+    name: notification-worker
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://analytics-mongo:27017/omnishop_analytics}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq-broker}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        missing-queues-fatal: false
+        auto-startup: true
+        default-requeue-rejected: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka-broker:9092}
+    consumer:
+      group-id: notification-analytics-group
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      missing-topics-fatal: false
+      observation-enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    diskspace:
+      enabled: false
+    mail:
+      enabled: false
+    mongo:
+      enabled: false
+    rabbit:
+      enabled: false
+
+omnishop:
+  version: ${APP_VERSION:v1}
+  artificial-latency-ms: ${ARTIFICIAL_LATENCY_MS:0}
+  consumer-lag-ms: ${CONSUMER_SIMULATE_LAG_MS:0}

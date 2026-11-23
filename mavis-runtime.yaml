@@ -1,0 +1,38 @@
+# Deterministic MAVIS Studio Live runtime contract for OmniShop Studio Suite
+version: 1
+services:
+  api-gateway:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  catalog-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  order-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  payment-service:
+    runtime: dotnet8-linux-x64-glibc
+    port: 8080
+    readinessPath: "/health"
+  notification-worker:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  postgres-db:
+    role: infra
+  analytics-mongo:
+    role: infra
+  redis-cache:
+    role: infra
+  rabbitmq-broker:
+    role: infra
+  kafka-broker:
+    role: infra
+seed:
+  service: order-service
+  method: POST
+  path: "/api/seed"
+  expectedStatus: 200

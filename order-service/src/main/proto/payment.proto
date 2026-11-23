@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.omnishop.payment.grpc";
+option csharp_namespace = "OmniShop.Payment.Grpc";
+
+package omnishop.payment.v1;
+
+service PaymentGateway {
+  rpc AuthorizePayment (AuthorizePaymentRequest) returns (AuthorizePaymentResponse);
+  rpc GetPaymentStatus (PaymentStatusRequest) returns (PaymentStatusResponse);
+  rpc CheckHealth (HealthProbeRequest) returns (HealthProbeResponse);
+}
+
+message AuthorizePaymentRequest {
+  string order_id = 1;
+  string customer_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string idempotency_key = 5;
+  bool dry_run = 6;
+}
+
+message AuthorizePaymentResponse {
+  string payment_id = 1;
+  string order_id = 2;
+  string status = 3;
+  double fraud_score = 4;
+  string service_version = 5;
+  bool cached_idempotency = 6;
+}
+
+message PaymentStatusRequest {
+  string order_id = 1;
+}
+
+message PaymentStatusResponse {
+  string payment_id = 1;
+  string order_id = 2;
+  string status = 3;
+  double amount = 4;
+  string service_version = 5;
+}
+
+message HealthProbeRequest {}
+
+message HealthProbeResponse {
+  string status = 1;
+  string service_version = 2;
+}

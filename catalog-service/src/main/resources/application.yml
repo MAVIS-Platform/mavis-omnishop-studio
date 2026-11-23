@@ -1,0 +1,49 @@
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    basedir: /tmp/tomcat
+    threads:
+      max: 48
+
+spring:
+  application:
+    name: catalog-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-db:5432/omnishop}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 8
+      connection-timeout: 3000
+      initialization-fail-timeout: -1
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-cache}
+      port: ${REDIS_PORT:6379}
+      timeout: 1500ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    diskspace:
+      enabled: false
+    mail:
+      enabled: false
+    redis:
+      enabled: false
+    db:
+      enabled: false
+
+omnishop:
+  version: ${APP_VERSION:v1}
+  cache-enabled: ${CACHE_ENABLED:true}
+  cache-ttl-seconds: ${CACHE_TTL_SECONDS:30}
+  artificial-latency-ms: ${ARTIFICIAL_LATENCY_MS:0}
+  fault-error-rate-pct: ${FAULT_ERROR_RATE_PCT:0}

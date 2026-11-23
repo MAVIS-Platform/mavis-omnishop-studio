@@ -1,0 +1,10 @@
+target/
+bin/
+obj/
+*.class
+*.log
+.idea/
+.vscode/
+.DS_Store
+digests.env
+.env
